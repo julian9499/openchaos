@@ -1,45 +1,37 @@
-import { Suspense } from "react";
-import { Countdown } from "@/components/Countdown";
-import { PRList } from "@/components/PRList";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { DEFAULT_LOCALE, isSupportedLocale, type Locale } from "@/i18n/config";
 
-export default function Home() {
-  return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-16">
-      <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-        OPENCHAOS.DEV
-      </h1>
+function pickPreferredLocale(
+  cookieLocale: string | null,
+  headerLocale: string | null
+): Locale {
+  if (cookieLocale && isSupportedLocale(cookieLocale)) return cookieLocale;
 
-      <div className="mt-12">
-        <Countdown />
-      </div>
+  if (headerLocale) {
+    const candidates = headerLocale
+      .split(",")
+      .map((part: string) => part.split(";")[0]?.trim().toLowerCase())
+      .filter((v): v is string => Boolean(v));
 
-      <section className="mt-16 w-full flex flex-col items-center">
-        <h2 className="text-xl font-medium text-zinc-600 mb-6">
-          Open PRs — Vote to merge
-        </h2>
-        <Suspense
-          fallback={
-            <div className="w-full max-w-xl text-center py-8">
-              <p className="text-zinc-500">Loading PRs...</p>
-            </div>
-          }
-        >
-          <PRList />
-        </Suspense>
-      </section>
+    for (const cand of candidates) {
+      if (isSupportedLocale(cand)) return cand;
+      const base = cand.split("-")[0];
+      if (isSupportedLocale(base)) return base as Locale;
+    }
+  }
 
-      <footer className="mt-16 flex flex-col items-center gap-4 text-sm text-zinc-500">
-        <p>
-          <a
-            href="https://github.com/skridlevsky/openchaos"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-zinc-900 transition-colors"
-          >
-            View on GitHub
-          </a>
-        </p>
-      </footer>
-    </main>
-  );
+  return DEFAULT_LOCALE;
 }
+
+export default async function RootRedirectPage() {
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get("openchaos-locale")?.value ?? null;
+
+  const hdrs = await headers();
+  const headerLocale = hdrs.get("accept-language");
+
+  const locale = pickPreferredLocale(cookieLocale, headerLocale);
+  redirect(`/${locale}`);
+}
+

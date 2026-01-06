@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 
 function getNextSunday8PM(): Date {
   const now = new Date();
@@ -47,6 +48,9 @@ export function Countdown() {
   const [time, setTime] = useState(() => getTimeRemaining(target));
   const [mounted, setMounted] = useState(false);
 
+  const { t } = useI18n();
+  const label = t("countdown.label", "until next merge");
+
   useEffect(() => {
     setMounted(true);
     const interval = setInterval(() => {
@@ -57,12 +61,13 @@ export function Countdown() {
   }, [target]);
 
   if (!mounted) {
+    // Render a deterministic placeholder for SSR and initial hydration.
     return (
       <div className="text-center">
         <div className="text-5xl sm:text-7xl font-mono font-bold tracking-tight">
           --d --h --m --s
         </div>
-        <p className="mt-4 text-zinc-500 text-lg">until next merge</p>
+        <p className="mt-4 text-zinc-400 text-lg">{label}</p>
       </div>
     );
   }
@@ -72,7 +77,7 @@ export function Countdown() {
       <div className="text-5xl sm:text-7xl font-mono font-bold tracking-tight">
         {time.days}d {pad(time.hours)}h {pad(time.minutes)}m {pad(time.seconds)}s
       </div>
-      <p className="mt-4 text-zinc-400 text-lg">until next merge</p>
+      <p className="mt-4 text-zinc-400 text-lg">{label}</p>
     </div>
   );
 }

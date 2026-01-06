@@ -12,22 +12,21 @@ const STORAGE_KEY = "openchaos-snow-enabled";
 export function SnowToggle({ onChange }: SnowToggleProps) {
   const { t } = useI18n();
 
-  // Start with a deterministic initial value so SSR and client match.
-  // We'll sync with localStorage and prefers-reduced-motion in an effect.
-  const [enabled, setEnabled] = useState<boolean>(true);
+  const [enabled, setEnabled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    const mqReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    return stored === null ? !mqReduced.matches : stored === "true";
+  });
 
   const labelOn = t("snow.toggle.off", "Turn snow off");
   const labelOff = t("snow.toggle.on", "Turn snow on");
 
   useEffect(() => {
-    // Run only on the client: read stored preference and motion settings.
+    // Notify parent of the current state, but do not change local state here.
+    onChange?.(enabled);
+
     const mqReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-
-    const initial = stored === null ? !mqReduced.matches : stored === "true";
-    setEnabled(initial);
-    onChange?.(initial);
-
     const handleChange = () => {
       if (mqReduced.matches) {
         setEnabled(false);
@@ -37,12 +36,14 @@ export function SnowToggle({ onChange }: SnowToggleProps) {
 
     mqReduced.addEventListener("change", handleChange);
     return () => mqReduced.removeEventListener("change", handleChange);
-  }, [onChange]);
+  }, [enabled, onChange]);
 
   const toggle = () => {
     const next = !enabled;
     setEnabled(next);
-    window.localStorage.setItem(STORAGE_KEY, String(next));
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, String(next));
+    }
     onChange?.(next);
   };
 

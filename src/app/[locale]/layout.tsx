@@ -1,21 +1,10 @@
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getMessages } from "@/i18n";
 import { DEFAULT_LOCALE, isSupportedLocale, type Locale } from "@/i18n/config";
 import ClientShell from "../shell";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "OpenChaos.dev",

@@ -1,5 +1,3 @@
-import en from "./en";
-
 const ja = {
   "home.title": "OPENCHAOS.DEV",
   "home.subtitle": "オープンなPR — マージに投票しよう",

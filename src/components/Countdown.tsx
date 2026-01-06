@@ -46,31 +46,17 @@ function pad(n: number): string {
 export function Countdown() {
   const [target] = useState(() => getNextSunday8PM());
   const [time, setTime] = useState(() => getTimeRemaining(target));
-  const [mounted, setMounted] = useState(false);
 
   const { t } = useI18n();
   const label = t("countdown.label", "until next merge");
 
   useEffect(() => {
-    setMounted(true);
     const interval = setInterval(() => {
       setTime(getTimeRemaining(target));
     }, 1000);
 
     return () => clearInterval(interval);
   }, [target]);
-
-  if (!mounted) {
-    // Render a deterministic placeholder for SSR and initial hydration.
-    return (
-      <div className="text-center">
-        <div className="text-5xl sm:text-7xl font-mono font-bold tracking-tight">
-          --d --h --m --s
-        </div>
-        <p className="mt-4 text-zinc-400 text-lg">{label}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="text-center">
